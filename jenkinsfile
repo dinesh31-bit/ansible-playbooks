@@ -9,7 +9,7 @@ pipeline{
         stage("ping the servers"){
             steps{
                 sshagent(['ansible_server']) {
-                    sh"ssh -o  StrictHostKeyChecking=no ec2-user@${ansible_server} ansible tomcatSevers -i ansible_sccripts/hosts -m ping "
+                    sh"ssh -o  StrictHostKeyChecking=no ec2-user@${ansible_server} ansible tomcat_servers -i ansible_sccripts/hosts -m ping "
                 }
             }
         }
