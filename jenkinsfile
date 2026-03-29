@@ -1,0 +1,20 @@
+pipeline{
+    stages{
+        stage("git clone"){
+            steps{
+                git branch: 'main', credentialsId: 'dinesh31bitgit', url: 'https://github.com/dinesh31-bit/ansible-playbooks.git'
+            }
+        }
+        stage("ping the servers"){
+            sshagent(['ansible_server']) {
+                 ssh -o  StrictHostKeyChecking=no ec2-user@${ansible_server} ansible tomcatSevers -i ansible_sccripts/hosts -m ping 
+            }
+        }
+        stage("install Tomcat"){
+            sshagent(['ansible_server']) {
+                 ssh -o  StrictHostKeyChecking=no ec2-user@${ansible_server} ansible-playbook -i ansible_sccripts/hosts ansible_sccripts/tomcat_install.yaml
+            }
+        }
+
+    }
+}

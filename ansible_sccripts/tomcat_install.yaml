@@ -1,0 +1,96 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+
+  - name: install java for tomcat
+    package:
+      name: java-17-amazon-corretto-devel
+      state: present
+
+  - name: downloading tomcat the url in /optfolder
+    get_url:
+      url: https://dlcdn.apache.org/tomcat/tomcat-11/v11.0.20/bin/apache-tomcat-11.0.20.tar.gz
+      dest: /opt
+
+  - name: extract tomcat tarfile
+    unarchive:
+      src: /opt/apache-tomcat-11.0.20.tar.gz
+      dest: /opt/
+      remote_src: yes
+
+  - name: rename the apache-tomcat-11.0.20.tar.gz to tomcat
+    command: mv /opt/apache-tomcat-11.0.20 /opt/tomcat
+    args:
+      creates: /opt/tomcat
+
+  - name: giving tomcat folder permeations to ec2-user
+    file:
+      path: /opt/tomcat
+      recurse: yes
+      owner: ec2-user
+      group: ec2-user
+
+  - name: giving executable permeations to startup.sh, shutdown.sh, catalina.sh
+    file:
+      path: "/opt/tomcat/bin/{{ item }}"
+      mode: 0755
+    loop:
+      - startup.sh
+      - shutdown.sh
+      - catalina.sh
+  - name: Create systemd service file for Tomcat
+    copy:
+      dest: /etc/systemd/system/tomcat.service
+      content: |
+        [Unit]
+        Description=Apache Tomcat 11 Web Application Container
+        After=network.target
+
+        [Service]
+        Type=forking
+
+        User=ec2-user
+        Group=ec2-user
+
+        Environment="JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto.x86_64"
+        Environment="CATALINA_PID=/opt/tomcat/temp/tomcat.pid"
+        Environment="CATALINA_HOME=/opt/tomcat"
+        Environment="CATALINA_BASE=/opt/tomcat"
+
+        ExecStart=/opt/tomcat/bin/startup.sh
+        ExecStop=/opt/tomcat/bin/shutdown.sh
+
+        Restart=on-failure
+
+        [Install]
+        WantedBy=multi-user.target
+  - name: reload systemd servic
+    systemd:
+      daemon_reload: yes
+  - name: start and enable tomcat
+    systemd:
+      name: tomcat
+      state: started
+      enabled: yes
+  - name: comment context.xml in META
+    lineinfile:
+      path: "/opt/tomcat/webapps/{{ item }}"
+      regexp: '^\s*<Valve className="org.apache.catalina.valves.RemoteCIDRValve"'
+      line: <!-- <Valve className="org.apache.catalina.valves.RemoteCIDRValve"
+    loop:
+      - manager/META-INF/context.xml
+      - host-manager/META-INF/context.xml
+  - name: comment context.xml in META
+    lineinfile:
+      path: "/opt/tomcat/webapps/{{ item }}"
+      regexp: '^\s* allow="127.0.0.0/8,::1/128" />'
+      line: allow="127.0.0.0/8,::1/128" /> -->
+    loop:
+      - manager/META-INF/context.xml
+      - host-manager/META-INF/context.xml
+  - name: give username and passowrd
+    lineinfile: 
+      path: /opt/tomcat/conf/tomcat-users.xml
+      insertbefore: '^</tomcat-users>'
+      line: <user username="dinesh" password="Dinesh123" roles="manager-gui,manager-script,manager-status"/>
