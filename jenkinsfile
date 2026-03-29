@@ -1,5 +1,8 @@
 pipeline{
     agent {label 'ansible'}
+    environment {
+        ansible_server = "13.201.37.48"  // ← Add this
+    }
     stages{
         stage("git clone"){
             steps{
