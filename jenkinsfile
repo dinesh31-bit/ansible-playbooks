@@ -1,4 +1,5 @@
 pipeline{
+    agent {lablel 'ansible'}
     stages{
         stage("git clone"){
             steps{
