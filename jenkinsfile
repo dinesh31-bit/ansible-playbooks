@@ -7,13 +7,17 @@ pipeline{
             }
         }
         stage("ping the servers"){
-            sshagent(['ansible_server']) {
-                sh"ssh -o  StrictHostKeyChecking=no ec2-user@${ansible_server} ansible tomcatSevers -i ansible_sccripts/hosts -m ping "
+            steps{
+                sshagent(['ansible_server']) {
+                    sh"ssh -o  StrictHostKeyChecking=no ec2-user@${ansible_server} ansible tomcatSevers -i ansible_sccripts/hosts -m ping "
+                }
             }
         }
         stage("install Tomcat"){
-            sshagent(['ansible_server']) {
-                sh"ssh -o  StrictHostKeyChecking=no ec2-user@${ansible_server} ansible-playbook -i ansible_sccripts/hosts ansible_sccripts/tomcat_install.yaml"
+            steps{
+                sshagent(['ansible_server']) {
+                    sh"ssh -o  StrictHostKeyChecking=no ec2-user@${ansible_server} ansible-playbook -i ansible_sccripts/hosts ansible_sccripts/tomcat_install.yaml"
+                }
             }
         }
 
