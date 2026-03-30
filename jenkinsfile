@@ -12,14 +12,14 @@ pipeline{
         stage("ping the servers"){
             steps{
                 withCredentials([file(credentialsId: 'ansible_node_file', variable: 'ansible_node')]) {
-                    sh "ansible tomcat_servers -i ansible_sccripts/hosts -m ping -e ansible_ssh_private_key_file=${ansible_node} --ssh-common-args='-o StrictHostKeyChecking=no"
+                    sh "ansible tomcat_servers -i ansible_sccripts/hosts -m ping -e ansible_ssh_private_key_file=${ansible_node} --ssh-common-args='-o StrictHostKeyChecking=no'"
                 }
             }
         }
         stage("install Tomcat"){
             steps{
                 withCredentials([file(credentialsId: 'ansible_node_file', variable: 'ansible_node')]) {
-                    sh "ansible-playbook -i ansible_sccripts/hosts ansible_sccripts/tomcat_install.yaml -e ansible_ssh_private_key_file=${ansible_node} --ssh-common-args='-o StrictHostKeyChecking=no"
+                    sh "ansible-playbook -i ansible_sccripts/hosts ansible_sccripts/tomcat_install.yaml -e ansible_ssh_private_key_file=${ansible_node} --ssh-common-args='-o StrictHostKeyChecking=no'"
             }
         }
 
